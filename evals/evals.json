@@ -1,0 +1,97 @@
+{
+  "skill_name": "project-ui-review",
+  "purpose": "维护 Skill 时检查漏检风险与范围控制，不用于日常项目验收或 CI 门禁。",
+  "evaluation_notes": [
+    "所有材料均为合成情境，不代表真实项目的运行证据；评测检查判断与下一步选择，不证明浏览器、宿主或保存链路已经通过。",
+    "向独立评估者提供当前 SKILL.md、单个或一组情境的 prompt 与 context；expectations 留给结果评判者，不提前提示答案。",
+    "按修改影响选择情境，无需每次全跑；比较判断和实际建议，不匹配固定措辞，也不新增长期评分脚本。"
+  ],
+  "evals": [
+    {
+      "id": "save-result-and-recovery",
+      "prompt": "请用 project-ui-review 审查这批保存交互改动。只根据所给材料判断能否交付、缺少哪些证据，以及最小修复和复验范围；不要修改文件或假装操作了真实应用。",
+      "context": {
+        "confirmed_contract": "编辑当前对象后保存到服务端；保存失败应保留输入，重试成功后关闭弹窗并在原列表展示最新结果。",
+        "change": "本次修改保存回调、成功反馈与失败处理。",
+        "implementation": "async function save() { setRows(applyDraft(rows, draft)); toast('保存成功'); closeDialog(); } function onError(error) { setDraft(initialValue); setError(error.message); setBusy(false); }",
+        "available_checks": "类型检查通过；截图中成功提示和按钮排版正常。尚未提供服务端写入、重新读取或失败后重试的运行记录。"
+      },
+      "expectations": [
+        "不能把成功提示、本地列表更新或类型检查当作保存成功证据，指出所给保存实现未体现服务端写入。",
+        "指出失败处理重置输入与已确认合同冲突，修复范围限定在当前保存和恢复链路。",
+        "提出从真实入口保存后重新读取同一对象，并检查失败保留输入及重试后的错误、忙碌状态与返回结果。",
+        "明确实际视觉与运行链路尚未由评估者验证，不虚构通过结论。"
+      ]
+    },
+    {
+      "id": "query-and-selection-scope",
+      "prompt": "请用 project-ui-review 只读审查筛选、分页和批量操作的这批改动，给出具体问题与最小复验范围。沿用给定交互合同，不重新设计列表。",
+      "context": {
+        "confirmed_contract": "批量操作只作用于当前页已选对象；筛选和翻页后清空选择。搜索框可以立即显示新条件，保留旧结果期间必须显示更新中。",
+        "change": "本次重写查询响应处理与选中状态。",
+        "implementation": "async function search(query) { setQuery(query); const result = await api.search(query); setRows(result.items); } function goToPage(page) { setPage(page); } async function removeSelected() { await api.remove(selectedIds); }",
+        "event_trace": [
+          "初始计数为 42，当前页选中 a、b。",
+          "先发出查询 A，再发出查询 B；B 先返回 3 条记录，A 后返回 8 条记录。",
+          "最终搜索框为 B、列表展示 A 的 8 条记录、计数仍为 42；没有更新中反馈。",
+          "翻页后 a、b 不在当前页，选中状态仍保留，点击批量删除提交 [a,b]。"
+        ]
+      },
+      "expectations": [
+        "识别过期响应覆盖当前查询、计数与结果不同步，以及保留旧结果时缺少更新反馈。",
+        "按给定合同指出隐藏选择和批量对象范围错误，不把跨页选择一概认定为所有项目都禁止的行为。",
+        "复验覆盖相关连续查询、翻页和批量对象范围，不扩大到全站数据或后端架构审计。",
+        "区分合成材料支持的判断与尚未执行的实际运行验证。"
+      ]
+    },
+    {
+      "id": "overlay-height-and-close",
+      "prompt": "请用 project-ui-review 审查这次弹窗和浮层修改。根据材料判断现有验证是否足够，给出最少的后续检查和修复方向；仅分析，不启动服务或修改代码。",
+      "context": {
+        "confirmed_contract": "复用项目弹窗和菜单；内容溢出时应能滚动到操作区。关闭弹窗后恢复页面滚动，焦点返回仍存在的触发按钮。",
+        "change": "本次改动弹窗尺寸、内部滚动容器和关闭处理。",
+        "implementation": ".dialog { height: 700px; overflow: hidden; } .body { overflow: auto; } function openDialog() { document.body.style.overflow = 'hidden'; setOpen(true); } function closeDialog() { setOpen(false); }",
+        "available_checks": "只有 1440×900 与 390×844 的截图；菜单仅在容器中央打开。没有矮窗口、边缘浮层、滚动后定位或关闭后的操作记录。"
+      },
+      "expectations": [
+        "指出两种宽度的截图不足以证明可用高度、滚动与关闭恢复正确，且代码存在固定高度裁切和滚动锁未恢复的风险。",
+        "按改动选择矮窗口或等效宿主高度，检查内容与主操作可达性、边缘浮层裁切和滚动后的定位。",
+        "检查关闭后的遮罩或点击层、滚动和焦点恢复；不要求所有设备与尺寸全排列。",
+        "不强制改成某种 Header/Body/Footer 布局或新组件库，不把静态分析说成实际视觉通过。"
+      ]
+    },
+    {
+      "id": "shared-component-contexts",
+      "prompt": "请用 project-ui-review 为这次共享菜单修复选择最小回归范围，并说明现有证据是否够用。只给方案，不打开项目。",
+      "context": {
+        "change": "共享菜单修改了浮层挂载位置、碰撞计算和关闭后的焦点恢复。",
+        "uses": [
+          "六个普通页面中的同类工具栏，使用方式和容器约束相同。",
+          "一个可横向滚动表格，行菜单靠近容器右侧。",
+          "一个模态弹窗内的菜单，使用宿主焦点管理。"
+        ],
+        "available_checks": "已经在两个普通页面中央位置检查了菜单打开、选择和关闭。其他使用位置未运行。"
+      },
+      "expectations": [
+        "复用普通页面已有证据，不重复检查六个等价页面。",
+        "补查滚动表格和模态弹窗这两种直接受改动影响的不同约束，不因已有两个页面通过就结束。",
+        "检查内容围绕挂载、碰撞、滚动和焦点，不扩大到无关保存链路或全站 UI 审计。"
+      ]
+    },
+    {
+      "id": "style-only-boundary",
+      "prompt": "请用 project-ui-review 判断这批改动还需做什么才能交付。只列与本次改动有关的检查，保留已有有效证据，不实际操作项目。",
+      "context": {
+        "confirmed_spec": "使用项目紧凑按钮变体，按钮水平内距为现有 spacing-2 token。",
+        "change": "仅将同一设置弹窗内三个按钮的水平内距改为 spacing-2；没有改动组件逻辑、请求、保存、选择状态或浮层结构。",
+        "available_checks": "当前构建已通过项目要求的类型检查；此前同版本业务逻辑的保存后重新读取与失败恢复已通过，证据仍有效。新间距尚未查看实际渲染。"
+      },
+      "expectations": [
+        "只补当前按钮在相关容器和状态下的实际视觉检查，关注尺寸、文字和布局。",
+        "不因按钮承担保存动作就重跑已有效的保存、查询或失败恢复链路。",
+        "不新增测试、评分、审批、审计文档、运行服务或全状态矩阵作为固定步骤。",
+        "仍将未查看的新间距标为视觉未验证，不仅凭构建通过交付。"
+      ]
+    }
+  ]
+}

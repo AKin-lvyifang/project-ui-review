@@ -1,0 +1,6 @@
+interface:
+  display_name: "项目 UI 验收"
+  short_description: "依据当前项目设计规范检查真实页面，自动修复偏差并复验。"
+  default_prompt: "使用 $project-ui-review，按当前项目 UI spec 验收本次前端改动，并在已授权范围内修复和复验。"
+policy:
+  allow_implicit_invocation: true
